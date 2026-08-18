@@ -1,0 +1,20 @@
+{
+  "name": "wechat-inbox-sync",
+  "version": "1.0.0",
+  "description": "微信 ⇄ Obsidian 同步插件",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc --noEmit -p tsconfig.json && node esbuild.config.mjs production",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "keywords": ["obsidian", "wechat", "sync", "double-link"],
+  "author": "WechatSync",
+  "license": "MIT",
+  "devDependencies": {
+    "builtin-modules": "^3.3.0",
+    "esbuild": "^0.20.2",
+    "obsidian": "^1.4.11",
+    "typescript": "^5.4.5"
+  }
+}
