@@ -47,7 +47,7 @@
 
 ## 配套服务
 
-- 后端 `sync-backend`：https://github.com/WechatSync/...（自托管 Node 服务）
+- 后端 `sync-backend`：https://github.com/gordon-g/...（自托管 Node 服务）
 - 小程序：微信中搜索「WeChat Inbox Sync」或扫码体验。
 
 ## 许可
