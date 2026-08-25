@@ -57,14 +57,14 @@ var WechatSyncSettingTab = class extends import_obsidian.PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    containerEl.createEl("h3", { text: "\u540E\u7AEF\u8FDE\u63A5" });
+    new import_obsidian.Setting(containerEl).setName("\u540E\u7AEF\u8FDE\u63A5").setHeading();
     new import_obsidian.Setting(containerEl).setName("\u540E\u7AEF\u5730\u5740").setDesc("sync-backend \u7684\u5730\u5740\uFF0C\u624B\u673A\u771F\u673A\u8C03\u8BD5\u7528\u7535\u8111\u5C40\u57DF\u7F51 IP").addText(
       (t) => t.setPlaceholder("http://localhost:8787").setValue(this.plugin.settings.backendUrl).onChange(async (v) => {
         this.plugin.settings.backendUrl = v.trim();
         await this.plugin.saveSettings();
       })
     );
-    containerEl.createEl("h3", { text: "\u7ED1\u5B9A Obsidian" });
+    new import_obsidian.Setting(containerEl).setName("\u7ED1\u5B9A Obsidian").setHeading();
     containerEl.createEl("p", {
       text: "1. \u5728\u5FAE\u4FE1\u5C0F\u7A0B\u5E8F\u300C\u7ED1\u5B9A Obsidian\u300D\u9875\u70B9\u51FB\u300C\u67E5\u770B\u7ED1\u5B9A\u7801\u300D\n2. \u628A 6 \u4F4D\u7ED1\u5B9A\u7801\u586B\u5165\u4E0B\u65B9\uFF0C\u70B9\u51FB\u300C\u7ACB\u5373\u7ED1\u5B9A\u300D\n3. \u7ED1\u5B9A\u6210\u529F\u540E\uFF0C\u63D2\u4EF6\u4F1A\u81EA\u52A8\u62C9\u53D6\u5C0F\u7A0B\u5E8F\u6536\u96C6\u7684\u5185\u5BB9"
     });
@@ -100,7 +100,7 @@ var WechatSyncSettingTab = class extends import_obsidian.PluginSettingTab {
     } else {
       bindStatus.createEl("p", { text: "\u23F3 \u672A\u7ED1\u5B9A\uFF0C\u8BF7\u8F93\u5165\u5C0F\u7A0B\u5E8F\u4E0A\u7684\u7ED1\u5B9A\u7801", cls: "sync-bind-wait" });
     }
-    containerEl.createEl("h3", { text: "\u81EA\u52A8\u540C\u6B65" });
+    new import_obsidian.Setting(containerEl).setName("\u81EA\u52A8\u540C\u6B65").setHeading();
     new import_obsidian.Setting(containerEl).setName("\u542F\u52A8\u540E\u81EA\u52A8\u540C\u6B65").setDesc("Obsidian \u6253\u5F00\u540E\u81EA\u52A8\u62C9\u53D6\u5C0F\u7A0B\u5E8F\u5F85\u540C\u6B65\u5185\u5BB9").addToggle(
       (t) => t.setValue(this.plugin.settings.autoSyncOnStartup).onChange(async (v) => {
         this.plugin.settings.autoSyncOnStartup = v;
@@ -114,7 +114,7 @@ var WechatSyncSettingTab = class extends import_obsidian.PluginSettingTab {
         this.plugin.restartSyncInterval();
       })
     );
-    containerEl.createEl("h3", { text: "\u77E5\u8BC6\u5E93" });
+    new import_obsidian.Setting(containerEl).setName("\u77E5\u8BC6\u5E93").setHeading();
     new import_obsidian.Setting(containerEl).setName("\u6536\u85CF\u6587\u4EF6\u5939").setDesc("\u5FAE\u4FE1\u5185\u5BB9\u540C\u6B65\u8FDB\u6765\u5B58\u653E\u7684\u6587\u4EF6\u5939").addText(
       (t) => t.setPlaceholder("\u5FAE\u4FE1\u6536\u85CF").setValue(this.plugin.settings.inboxFolder).onChange(async (v) => {
         this.plugin.settings.inboxFolder = v.trim();
@@ -127,7 +127,7 @@ var WechatSyncSettingTab = class extends import_obsidian.PluginSettingTab {
         await this.plugin.saveSettings();
       })
     );
-    containerEl.createEl("h3", { text: "AI \u5BF9\u8BDD" });
+    new import_obsidian.Setting(containerEl).setName("AI \u5BF9\u8BDD").setHeading();
     new import_obsidian.Setting(containerEl).setName("API Base URL").setDesc("OpenAI \u517C\u5BB9\u63A5\u53E3\u5730\u5740").addText(
       (t) => t.setPlaceholder("https://api.openai.com/v1").setValue(this.plugin.settings.aiBaseUrl).onChange(async (v) => {
         this.plugin.settings.aiBaseUrl = v.trim();
