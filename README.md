@@ -1,11 +1,11 @@
-# WeChat Inbox Sync
+# WeChat Content Sync
 
 把微信生态里看到的文章 / 图片 / 视频 / 文字，经配套小程序转发到 Obsidian，自动沉淀成带 **双链** 的知识库笔记；反过来，Obsidian 里整理好的笔记也能一键发布回小程序，在手机上浏览。插件内置 **AI 对话视图**，对话自动存档成文档，下次打开自动续接。
 
 ## 架构
 
 ```
- 微信分享 / 粘贴          手机端「WeChat Inbox Sync」小程序
+ 微信分享 / 粘贴          手机端「WeChat Content Sync」小程序
        │                           │
        │  HTTPS                    ▼
        └──────────►   sync-backend（Node/Express 中枢）
@@ -32,10 +32,10 @@
 
 方式一（手动）：
 1. 下载插件包（`main.js` / `manifest.json` / `styles.css`）。
-2. 放到 vault 的 `.obsidian/plugins/wechat-inbox-sync/` 目录。
-3. Obsidian 设置 → 社区插件 → 关闭安全模式 → 启用「WeChat Inbox Sync」。
+2. 放到 vault 的 `.obsidian/plugins/wechat-content-sync/` 目录。
+3. Obsidian 设置 → 社区插件 → 关闭安全模式 → 启用「WeChat Content Sync」。
 
-方式二（社区插件市场）：在 Obsidian 社区插件市场搜索 **WeChat Inbox Sync** 直接安装。
+方式二（社区插件市场）：在 Obsidian 社区插件市场搜索 **WeChat Content Sync** 直接安装。
 
 ## 配置
 
@@ -47,8 +47,8 @@
 
 ## 配套服务
 
-- 后端 `sync-backend`：https://github.com/gordon-g/...（自托管 Node 服务）
-- 小程序：微信中搜索「WeChat Inbox Sync」或扫码体验。
+- 后端 `sync-backend`：https://github.com/WechatSync/...（自托管 Node 服务）
+- 小程序：微信中搜索「WeChat Content Sync」或扫码体验。
 
 ## 许可
 
