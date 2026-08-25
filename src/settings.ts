@@ -53,7 +53,7 @@ export class WechatSyncSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl('h3', { text: '后端连接' });
+    new Setting(containerEl).setName('后端连接').setHeading();
     new Setting(containerEl)
       .setName('后端地址')
       .setDesc('sync-backend 的地址，手机真机调试用电脑局域网 IP')
@@ -67,7 +67,7 @@ export class WechatSyncSettingTab extends PluginSettingTab {
           })
       );
 
-    containerEl.createEl('h3', { text: '绑定 Obsidian' });
+    new Setting(containerEl).setName('绑定 Obsidian').setHeading();
     containerEl.createEl('p', {
       text: '1. 在微信小程序「绑定 Obsidian」页点击「查看绑定码」\n2. 把 6 位绑定码填入下方，点击「立即绑定」\n3. 绑定成功后，插件会自动拉取小程序收集的内容',
     });
@@ -122,7 +122,7 @@ export class WechatSyncSettingTab extends PluginSettingTab {
       bindStatus.createEl('p', { text: '⏳ 未绑定，请输入小程序上的绑定码', cls: 'sync-bind-wait' });
     }
 
-    containerEl.createEl('h3', { text: '自动同步' });
+    new Setting(containerEl).setName('自动同步').setHeading();
     new Setting(containerEl)
       .setName('启动后自动同步')
       .setDesc('Obsidian 打开后自动拉取小程序待同步内容')
@@ -147,7 +147,7 @@ export class WechatSyncSettingTab extends PluginSettingTab {
           })
       );
 
-    containerEl.createEl('h3', { text: '知识库' });
+    new Setting(containerEl).setName('知识库').setHeading();
     new Setting(containerEl)
       .setName('收藏文件夹')
       .setDesc('微信内容同步进来存放的文件夹')
@@ -167,7 +167,7 @@ export class WechatSyncSettingTab extends PluginSettingTab {
         })
       );
 
-    containerEl.createEl('h3', { text: 'AI 对话' });
+    new Setting(containerEl).setName('AI 对话').setHeading();
     new Setting(containerEl)
       .setName('API Base URL')
       .setDesc('OpenAI 兼容接口地址')
