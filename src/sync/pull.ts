@@ -23,6 +23,17 @@ function buildNoteContent(item: InboxItem): string {
   return `${fm}\n# ${item.title}\n\n${item.content}\n\n${media}\n${related}`;
 }
 
+// 判断一条已存在的笔记是否为「空白笔记」（仅 frontmatter/标题/嵌入，无实质正文）
+function isBlankNote(content: string): boolean {
+  let c = content;
+  c = c.replace(/^---\n[\s\S]*?\n---\n?/, ''); // 去 frontmatter
+  c = c.replace(/^#\s.*\n?/, ''); // 去一级标题
+  c = c.replace(/!\[\[.*?\]\]/g, '').replace(/!\[.*?\]\(.*?\)/g, ''); // 去嵌入/图片
+  c = c.replace(/^##\s*关联[\s\S]*$/m, ''); // 去关联区块
+  c = c.replace(/\n{2,}/g, '\n').trim();
+  return c.replace(/\s/g, '').length === 0;
+}
+
 // 在本批次导入的笔记之间互链（按标题命中）
 async function linkWithinBatch(plugin: WechatSyncPlugin, titles: string[]): Promise<void> {
   if (titles.length < 2 || !plugin.settings.autoLinkByTitle) return;
@@ -41,18 +52,18 @@ async function linkWithinBatch(plugin: WechatSyncPlugin, titles: string[]): Prom
 }
 
 // 拉取后端待同步项 → 生成双链笔记 → 标记已同步
-export async function pullPending(plugin: WechatSyncPlugin): Promise<number> {
+export async function pullPending(plugin: WechatSyncPlugin, pendingOnly = true): Promise<number> {
   const api: SyncApi = plugin.getApi();
   const settings = plugin.settings;
   let items: InboxItem[] = [];
   try {
-    items = await api.listInbox(true);
+    items = await api.listInbox(pendingOnly);
   } catch (e) {
     new Notice('拉取失败：' + (e as Error).message);
     return 0;
   }
   if (items.length === 0) {
-    new Notice('没有待同步的微信内容');
+    new Notice(pendingOnly ? '没有待同步的微信内容' : '没有可拉取的微信内容');
     return 0;
   }
 
@@ -66,7 +77,16 @@ export async function pullPending(plugin: WechatSyncPlugin): Promise<number> {
     const path = `${settings.inboxFolder}/${safe}.md`;
     const existing = plugin.app.vault.getAbstractFileByPath(path);
     if (existing instanceof TFile) {
-      // 已存在则跳过，不覆盖用户可能已做的编辑
+      const current = await plugin.app.vault.read(existing);
+      if (!isBlankNote(current)) {
+        // 已存在且非空：保留用户编辑，仅标记已同步
+        await api.markInboxSynced(item.id, path);
+        continue;
+      }
+      // 旧空白笔记：用后端真实内容覆盖回填
+      await plugin.app.vault.modify(existing, buildNoteContent(item));
+      importedTitles.push(item.title);
+      imported.push({ title: item.title, tags: item.tags });
       await api.markInboxSynced(item.id, path);
       continue;
     }

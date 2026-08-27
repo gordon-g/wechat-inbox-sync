@@ -38,6 +38,11 @@ export default class WechatSyncPlugin extends Plugin {
       callback: () => this.syncNow(),
     });
     this.addCommand({
+      id: 'pull-wechat-all',
+      name: '重新拉取全部微信内容（含已同步）',
+      callback: () => this.syncAll(),
+    });
+    this.addCommand({
       id: 'push-note',
       name: '发布当前笔记到小程序',
       callback: () => this.pushNow(),
@@ -139,6 +144,26 @@ export default class WechatSyncPlugin extends Plugin {
     } catch (e) {
       this.updateStatusBar('同步失败');
       if (notifyEmpty) new Notice('同步失败：' + (e as Error).message);
+      return 0;
+    }
+  }
+
+  // 重新拉取全部（含已同步），用于回填旧空白笔记
+  async syncAll(): Promise<number> {
+    if (!this.settings.deviceToken) {
+      new Notice('尚未绑定 Obsidian，请在插件设置输入小程序绑定码');
+      this.updateStatusBar('未绑定');
+      return 0;
+    }
+    this.updateStatusBar('全量同步中...');
+    try {
+      const count = await pullPending(this, false);
+      const time = new Date().toLocaleTimeString();
+      this.updateStatusBar(`全量同步完成 (${time})`);
+      return count;
+    } catch (e) {
+      this.updateStatusBar('同步失败');
+      new Notice('同步失败：' + (e as Error).message);
       return 0;
     }
   }

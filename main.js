@@ -321,6 +321,15 @@ ${item.content}
 ${media}
 ${related}`;
 }
+function isBlankNote(content) {
+  let c = content;
+  c = c.replace(/^---\n[\s\S]*?\n---\n?/, "");
+  c = c.replace(/^#\s.*\n?/, "");
+  c = c.replace(/!\[\[.*?\]\]/g, "").replace(/!\[.*?\]\(.*?\)/g, "");
+  c = c.replace(/^##\s*关联[\s\S]*$/m, "");
+  c = c.replace(/\n{2,}/g, "\n").trim();
+  return c.replace(/\s/g, "").length === 0;
+}
 async function linkWithinBatch(plugin, titles) {
   if (titles.length < 2 || !plugin.settings.autoLinkByTitle)
     return;
@@ -338,18 +347,18 @@ async function linkWithinBatch(plugin, titles) {
     }
   }
 }
-async function pullPending(plugin) {
+async function pullPending(plugin, pendingOnly = true) {
   const api = plugin.getApi();
   const settings = plugin.settings;
   let items = [];
   try {
-    items = await api.listInbox(true);
+    items = await api.listInbox(pendingOnly);
   } catch (e) {
     new import_obsidian4.Notice("\u62C9\u53D6\u5931\u8D25\uFF1A" + e.message);
     return 0;
   }
   if (items.length === 0) {
-    new import_obsidian4.Notice("\u6CA1\u6709\u5F85\u540C\u6B65\u7684\u5FAE\u4FE1\u5185\u5BB9");
+    new import_obsidian4.Notice(pendingOnly ? "\u6CA1\u6709\u5F85\u540C\u6B65\u7684\u5FAE\u4FE1\u5185\u5BB9" : "\u6CA1\u6709\u53EF\u62C9\u53D6\u7684\u5FAE\u4FE1\u5185\u5BB9");
     return 0;
   }
   await ensureFolder(plugin.app.vault, settings.inboxFolder);
@@ -360,6 +369,14 @@ async function pullPending(plugin) {
     const path = `${settings.inboxFolder}/${safe}.md`;
     const existing = plugin.app.vault.getAbstractFileByPath(path);
     if (existing instanceof import_obsidian4.TFile) {
+      const current = await plugin.app.vault.read(existing);
+      if (!isBlankNote(current)) {
+        await api.markInboxSynced(item.id, path);
+        continue;
+      }
+      await plugin.app.vault.modify(existing, buildNoteContent(item));
+      importedTitles.push(item.title);
+      imported.push({ title: item.title, tags: item.tags });
       await api.markInboxSynced(item.id, path);
       continue;
     }
@@ -623,6 +640,11 @@ var WechatSyncPlugin = class extends import_obsidian8.Plugin {
       callback: () => this.syncNow()
     });
     this.addCommand({
+      id: "pull-wechat-all",
+      name: "\u91CD\u65B0\u62C9\u53D6\u5168\u90E8\u5FAE\u4FE1\u5185\u5BB9\uFF08\u542B\u5DF2\u540C\u6B65\uFF09",
+      callback: () => this.syncAll()
+    });
+    this.addCommand({
       id: "push-note",
       name: "\u53D1\u5E03\u5F53\u524D\u7B14\u8BB0\u5230\u5C0F\u7A0B\u5E8F",
       callback: () => this.pushNow()
@@ -717,6 +739,25 @@ var WechatSyncPlugin = class extends import_obsidian8.Plugin {
       this.updateStatusBar("\u540C\u6B65\u5931\u8D25");
       if (notifyEmpty)
         new import_obsidian8.Notice("\u540C\u6B65\u5931\u8D25\uFF1A" + e.message);
+      return 0;
+    }
+  }
+  // 重新拉取全部（含已同步），用于回填旧空白笔记
+  async syncAll() {
+    if (!this.settings.deviceToken) {
+      new import_obsidian8.Notice("\u5C1A\u672A\u7ED1\u5B9A Obsidian\uFF0C\u8BF7\u5728\u63D2\u4EF6\u8BBE\u7F6E\u8F93\u5165\u5C0F\u7A0B\u5E8F\u7ED1\u5B9A\u7801");
+      this.updateStatusBar("\u672A\u7ED1\u5B9A");
+      return 0;
+    }
+    this.updateStatusBar("\u5168\u91CF\u540C\u6B65\u4E2D...");
+    try {
+      const count = await pullPending(this, false);
+      const time = (/* @__PURE__ */ new Date()).toLocaleTimeString();
+      this.updateStatusBar(`\u5168\u91CF\u540C\u6B65\u5B8C\u6210 (${time})`);
+      return count;
+    } catch (e) {
+      this.updateStatusBar("\u540C\u6B65\u5931\u8D25");
+      new import_obsidian8.Notice("\u540C\u6B65\u5931\u8D25\uFF1A" + e.message);
       return 0;
     }
   }
