@@ -41,6 +41,7 @@ var DEFAULT_SETTINGS = {
   autoSyncOnStartup: true,
   syncIntervalMinutes: 5,
   inboxFolder: "\u5FAE\u4FE1\u6536\u85CF",
+  attachmentsFolder: "\u5FAE\u4FE1\u6536\u85CF/\u9644\u4EF6",
   autoLinkByTitle: true,
   aiBaseUrl: "https://api.openai.com/v1",
   aiApiKey: "",
@@ -124,6 +125,12 @@ var WechatSyncSettingTab = class extends import_obsidian.PluginSettingTab {
     new import_obsidian.Setting(containerEl).setName("\u6309\u6807\u9898\u81EA\u52A8\u4E92\u94FE").setDesc("\u5BFC\u5165\u65F6\u628A\u6B63\u6587\u4E2D\u51FA\u73B0\u7684\u5176\u4ED6\u7B14\u8BB0\u6807\u9898\u66FF\u6362\u4E3A [[\u53CC\u94FE]]").addToggle(
       (t) => t.setValue(this.plugin.settings.autoLinkByTitle).onChange(async (v) => {
         this.plugin.settings.autoLinkByTitle = v;
+        await this.plugin.saveSettings();
+      })
+    );
+    new import_obsidian.Setting(containerEl).setName("\u9644\u4EF6\u6587\u4EF6\u5939").setDesc("\u5FAE\u4FE1\u56FE\u7247 / PDF / \u6587\u4EF6\u4E0B\u8F7D\u8FDB vault \u7684\u76EE\u5F55\uFF08\u7559\u7A7A\u5219\u81EA\u52A8\u7528\u300C\u6536\u85CF\u6587\u4EF6\u5939/\u9644\u4EF6\u300D\uFF09").addText(
+      (t) => t.setPlaceholder("\u5FAE\u4FE1\u6536\u85CF/\u9644\u4EF6").setValue(this.plugin.settings.attachmentsFolder).onChange(async (v) => {
+        this.plugin.settings.attachmentsFolder = v.trim();
         await this.plugin.saveSettings();
       })
     );
@@ -302,7 +309,7 @@ async function updateTagHubs(app, items, indexFolder) {
 }
 
 // src/sync/pull.ts
-function buildNoteContent(item) {
+function buildNoteContent(item, urlToRef, mediaRefs) {
   const fm = buildFrontmatter({
     type: item.type,
     source: item.source || "Obsidian \u5185\u5BB9\u540C\u6B65\u52A9\u624B",
@@ -311,12 +318,21 @@ function buildNoteContent(item) {
     wechat_id: item.id,
     importedAt: (/* @__PURE__ */ new Date()).toISOString()
   });
-  const media = (item.mediaUrls || []).map((u) => `![](${u})`).join("\n");
+  let body = item.content || "";
+  const injected = /* @__PURE__ */ new Set();
+  for (const [u, ref] of Object.entries(urlToRef)) {
+    const token = `![](${u})`;
+    if (body.includes(token)) {
+      body = body.split(token).join(ref);
+      injected.add(ref);
+    }
+  }
+  const media = mediaRefs.filter((r) => !injected.has(r)).join("\n");
   const related = item.tags.length > 0 ? "\n## \u5173\u8054\n" + item.tags.map((t) => `- [[\u7D22\u5F15/${t}]]`).join("\n") + "\n" : "";
   return `${fm}
 # ${item.title}
 
-${item.content}
+${body}
 
 ${media}
 ${related}`;
@@ -329,6 +345,61 @@ function isBlankNote(content) {
   c = c.replace(/^##\s*关联[\s\S]*$/m, "");
   c = c.replace(/\n{2,}/g, "\n").trim();
   return c.replace(/\s/g, "").length === 0;
+}
+function extFor(urlBase, contentType) {
+  const m = urlBase.match(/\.([a-z0-9]+)$/i);
+  if (m) {
+    const e = "." + m[1].toLowerCase();
+    if (e.length <= 6)
+      return e;
+  }
+  const map = {
+    "image/png": ".png",
+    "image/jpeg": ".jpg",
+    "image/jpg": ".jpg",
+    "image/gif": ".gif",
+    "image/webp": ".webp",
+    "image/bmp": ".bmp",
+    "image/svg+xml": ".svg",
+    "application/pdf": ".pdf",
+    "application/msword": ".doc",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+    "application/vnd.ms-excel": ".xls",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+    "application/vnd.ms-powerpoint": ".ppt",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation": ".pptx",
+    "application/zip": ".zip",
+    "text/plain": ".txt",
+    "text/markdown": ".md"
+  };
+  return map[contentType] || "";
+}
+async function downloadMediaToVault(plugin, url, attachFolder) {
+  try {
+    const resp = await (0, import_obsidian4.requestUrl)({ url, method: "GET" });
+    if (resp.status >= 400)
+      return null;
+    const buf = resp.arrayBuffer;
+    if (!buf || buf.byteLength === 0)
+      return null;
+    const contentType = (resp.headers && resp.headers["content-type"] || "").split(";")[0].trim().toLowerCase();
+    const urlBase = decodeURIComponent(String(url).split("?")[0].split("#")[0]);
+    const rawName = urlBase.split("/").pop() || "attachment";
+    let stem = rawName.replace(/\.[^.]+$/, "") || "attachment";
+    const ext = extFor(urlBase, contentType);
+    stem = sanitizeFilename(stem).slice(0, 50);
+    const fname = `${stem}${ext}`;
+    const targetPath = `${attachFolder}/${fname}`;
+    const existing = plugin.app.vault.getAbstractFileByPath(targetPath);
+    if (existing instanceof import_obsidian4.TFile) {
+      return `![[${fname}]]`;
+    }
+    await plugin.app.vault.createBinary(targetPath, buf);
+    return `![[${fname}]]`;
+  } catch (e) {
+    console.error("[wechat-sync] \u4E0B\u8F7D\u5A92\u4F53\u5931\u8D25:", url, e);
+    return null;
+  }
 }
 async function linkWithinBatch(plugin, titles) {
   if (titles.length < 2 || !plugin.settings.autoLinkByTitle)
@@ -362,9 +433,22 @@ async function pullPending(plugin, pendingOnly = true) {
     return 0;
   }
   await ensureFolder(plugin.app.vault, settings.inboxFolder);
+  const attachFolder = settings.attachmentsFolder || `${settings.inboxFolder}/\u9644\u4EF6`;
+  await ensureFolder(plugin.app.vault, attachFolder);
   const importedTitles = [];
   const imported = [];
   for (const item of items) {
+    const urlToRef = {};
+    const mediaRefs = [];
+    if (item.mediaUrls && item.mediaUrls.length) {
+      for (const u of item.mediaUrls) {
+        const ref = await downloadMediaToVault(plugin, u, attachFolder);
+        const finalRef = ref != null ? ref : `![](${u})`;
+        urlToRef[u] = finalRef;
+        mediaRefs.push(finalRef);
+      }
+    }
+    const noteContent = buildNoteContent(item, urlToRef, mediaRefs);
     const safe = sanitizeFilename(item.title);
     const path = `${settings.inboxFolder}/${safe}.md`;
     const existing = plugin.app.vault.getAbstractFileByPath(path);
@@ -374,13 +458,10 @@ async function pullPending(plugin, pendingOnly = true) {
         await api.markInboxSynced(item.id, path);
         continue;
       }
-      await plugin.app.vault.modify(existing, buildNoteContent(item));
-      importedTitles.push(item.title);
-      imported.push({ title: item.title, tags: item.tags });
-      await api.markInboxSynced(item.id, path);
-      continue;
+      await plugin.app.vault.modify(existing, noteContent);
+    } else {
+      await plugin.app.vault.create(path, noteContent);
     }
-    await plugin.app.vault.create(path, buildNoteContent(item));
     importedTitles.push(item.title);
     imported.push({ title: item.title, tags: item.tags });
     await api.markInboxSynced(item.id, path);

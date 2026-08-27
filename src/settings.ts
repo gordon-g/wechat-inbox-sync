@@ -13,6 +13,7 @@ export interface WechatSyncSettings {
   syncIntervalMinutes: number; // 0 表示不自动轮询
   // 知识库落库
   inboxFolder: string;
+  attachmentsFolder: string; // 微信图片/PDF 等附件下载到 vault 的目录
   autoLinkByTitle: boolean;
   // AI 对话
   aiBaseUrl: string;
@@ -32,6 +33,7 @@ export const DEFAULT_SETTINGS: WechatSyncSettings = {
   autoSyncOnStartup: true,
   syncIntervalMinutes: 5,
   inboxFolder: '微信收藏',
+  attachmentsFolder: '微信收藏/附件',
   autoLinkByTitle: true,
   aiBaseUrl: 'https://api.openai.com/v1',
   aiApiKey: '',
@@ -165,6 +167,18 @@ export class WechatSyncSettingTab extends PluginSettingTab {
           this.plugin.settings.autoLinkByTitle = v;
           await this.plugin.saveSettings();
         })
+      );
+    new Setting(containerEl)
+      .setName('附件文件夹')
+      .setDesc('微信图片 / PDF / 文件下载进 vault 的目录（留空则自动用「收藏文件夹/附件」）')
+      .addText((t) =>
+        t
+          .setPlaceholder('微信收藏/附件')
+          .setValue(this.plugin.settings.attachmentsFolder)
+          .onChange(async (v) => {
+            this.plugin.settings.attachmentsFolder = v.trim();
+            await this.plugin.saveSettings();
+          })
       );
 
     new Setting(containerEl).setName('AI 对话').setHeading();
