@@ -38,24 +38,35 @@ Pairing works via a **pairing code + device token**, no API key needed:
 
 ## 安装 / Installation
 
-> ⚠️ **本插件不在 Obsidian 社区插件市场。** 它仅通过 **BRAT** 或 **手动** 两种方式分发。
-> 社区市场里有一个名字近似的 **「WeChat Inbox Sync」**（作者 Zhang Zhang）是**另一款第三方插件**，功能与本项目无关，**请勿混淆安装**。
+> ℹ️ 本插件 **已在 Obsidian 社区插件市场**（id：`wechat-content-sync`，作者 gordon.g）。也支持 **BRAT** 与 **手动** 安装。
+> ⚠️ 社区市场里另有一款名字相近的 **「WeChat Inbox Sync」**（id：`wechat-inbox-sync`，作者 Zhang Zhang）是**另一款第三方插件**，与本插件无关，**请勿混淆安装**。
 
-> ⚠️ This plugin is **NOT** on the Obsidian Community plugin store. It is distributed only via **BRAT** or **manual** install. The similarly-named **"WeChat Inbox Sync"** on the Community store is a **different third-party plugin** by Zhang Zhang — do not confuse it with this one.
+> ℹ️ This plugin **is on the Obsidian Community plugin store** (id: `wechat-content-sync`, author gordon.g). BRAT and manual install are also supported.
+> ⚠️ Note: a similarly-named **"WeChat Inbox Sync"** (id: `wechat-inbox-sync`, by Zhang Zhang) also exists on the store — a **different third-party plugin**, not this one.
 
-### 方式一：BRAT 安装（推荐）/ Method 1: BRAT (recommended)
+### 方式一：社区插件市场（推荐）/ Method 1: Community plugin store (recommended)
+
+1. 打开 Obsidian → 设置 → 社区插件 → 关闭安全模式（如尚未关闭）。
+2. 浏览社区插件，搜索 **WeChat Content Sync**（请确认 id 为 `wechat-content-sync`）。
+3. 点击安装并启用。
+
+1. Open Obsidian → Settings → Community plugins → turn off Safe mode if needed.
+2. Browse and search for **WeChat Content Sync** (verify the id is `wechat-content-sync`).
+3. Install and enable it.
+
+### 方式二：BRAT 安装 / Method 2: BRAT
 
 1. 社区插件市场安装并启用 **BRAT**（搜索 `obsidian42-brat`）。
 2. 命令面板（Cmd/Ctrl+P）→ `BRAT: Add a beta plugin for testing`。
 3. 填入仓库地址：`gordon-g/wechat-inbox-sync`。
-4. 重启 Obsidian，在 设置 → 社区插件 中启用「WeChat Content Sync」。
+4. 重启 Obsidian，启用「WeChat Content Sync」。
 
 1. Install and enable **BRAT** from the Community store (search `obsidian42-brat`).
 2. Command palette (Cmd/Ctrl+P) → `BRAT: Add a beta plugin for testing`.
 3. Enter the repo: `gordon-g/wechat-inbox-sync`.
-4. Restart Obsidian and enable "WeChat Content Sync" in Settings → Community plugins.
+4. Restart Obsidian and enable "WeChat Content Sync".
 
-### 方式二：手动安装 / Method 2: Manual install
+### 方式三：手动安装 / Method 3: Manual install
 
 1. 从 [Releases](https://github.com/gordon-g/wechat-inbox-sync/releases) 下载最新版的 `main.js`、`manifest.json`、`styles.css`。
 2. 在 vault 中创建目录 `.obsidian/plugins/wechat-content-sync/`。
@@ -69,12 +80,19 @@ Pairing works via a **pairing code + device token**, no API key needed:
 
 ## 更新 / Update
 
-通过 BRAT 安装的用户，更新只需：
+社区市场与 BRAT 安装的版本**同源**：都读取本仓库 GitHub 的「最新 Release」（当前 **v1.0.7**）。
 
-- 命令面板（Cmd/Ctrl+P）→ `BRAT: Check for updates for all beta plugins`；或
-- `BRAT: Update a single beta plugin` → 选 **WeChat Content Sync**。
+- **社区市场安装**：设置 → 社区插件 → 在插件卡片点「更新」即可。
+- **BRAT 安装**：命令面板（Cmd/Ctrl+P）→ `BRAT: Check for updates for all beta plugins`；或 `BRAT: Update a single beta plugin` → 选 **WeChat Content Sync**。
 
-更新后**重启 Obsidian**（Cmd/Ctrl+R）以加载新版本。
+更新后**重启 Obsidian**（Cmd/Ctrl+R）以加载新版本。若社区市场仍显示旧版本号，重启 Obsidian 让其重新拉取最新 Release 即可。
+
+Both Community-store and BRAT installs pull from this repo's latest GitHub Release (currently **v1.0.7**):
+
+- **Community store**: Settings → Community plugins → click "Update" on the plugin card.
+- **BRAT**: Command palette (Cmd/Ctrl+P) → `BRAT: Check for updates for all beta plugins`; or `BRAT: Update a single beta plugin` → pick **WeChat Content Sync**.
+
+Restart Obsidian (Cmd/Ctrl+R) after updating. If the store still shows an old version, restart Obsidian to re-fetch the latest Release.
 
 Users installed via BRAT can update with:
 
