@@ -38,15 +38,22 @@ Pairing works via a **pairing code + device token**, no API key needed:
 
 ## 安装 / Installation
 
-### 方式一：社区插件市场（推荐）/ Method 1: Community plugin market (recommended)
+> ⚠️ **本插件不在 Obsidian 社区插件市场。** 它仅通过 **BRAT** 或 **手动** 两种方式分发。
+> 社区市场里有一个名字近似的 **「WeChat Inbox Sync」**（作者 Zhang Zhang）是**另一款第三方插件**，功能与本项目无关，**请勿混淆安装**。
 
-1. 打开 Obsidian → 设置 → 社区插件 → 关闭安全模式。
-2. 浏览社区插件，搜索 **WeChat Content Sync**。
-3. 点击安装并启用。
+> ⚠️ This plugin is **NOT** on the Obsidian Community plugin store. It is distributed only via **BRAT** or **manual** install. The similarly-named **"WeChat Inbox Sync"** on the Community store is a **different third-party plugin** by Zhang Zhang — do not confuse it with this one.
 
-1. Open Obsidian → Settings → Community plugins → turn off Safe mode.
-2. Browse community plugins and search for **WeChat Content Sync**.
-3. Install and enable it.
+### 方式一：BRAT 安装（推荐）/ Method 1: BRAT (recommended)
+
+1. 社区插件市场安装并启用 **BRAT**（搜索 `obsidian42-brat`）。
+2. 命令面板（Cmd/Ctrl+P）→ `BRAT: Add a beta plugin for testing`。
+3. 填入仓库地址：`gordon-g/wechat-inbox-sync`。
+4. 重启 Obsidian，在 设置 → 社区插件 中启用「WeChat Content Sync」。
+
+1. Install and enable **BRAT** from the Community store (search `obsidian42-brat`).
+2. Command palette (Cmd/Ctrl+P) → `BRAT: Add a beta plugin for testing`.
+3. Enter the repo: `gordon-g/wechat-inbox-sync`.
+4. Restart Obsidian and enable "WeChat Content Sync" in Settings → Community plugins.
 
 ### 方式二：手动安装 / Method 2: Manual install
 
@@ -93,6 +100,26 @@ Early versions (v1.0.0 `wechat-inbox-sync`, v1.0.1 `obsidian-wechat-sync`) used 
 3. Enable the new plugin and restart Obsidian.
 
 > Convention: the plugin id is **locked to `wechat-content-sync`** since v1.0.2, so every later version updates smoothly.
+
+## macOS / iCloud 用户注意 / Notes for macOS (iCloud) users
+
+> **症状**：通过 BRAT 更新时提示「无法安装 / failed to install」，但 GitHub 上的 Release 与文件都正常。
+> **根因**：vault 放在 `~/Documents` 或 `~/Desktop` 下、且开启了 iCloud「桌面与文稿」同步时，iCloud 在同步过程中会临时锁定目录，导致 BRAT（Obsidian 进程）写入 `.obsidian/plugins/wechat-content-sync/` 失败。
+> **这是 macOS 的环境限制，不是本插件缺陷，也无法在插件代码内修复。**
+
+**推荐做法（一次性解决，永久免踩坑）**：把 vault 移出 iCloud 同步目录。
+
+1. 退出 Obsidian。
+2. 把 vault 文件夹从 `~/Documents/...` 移到非同步目录，例如 `~/Obsidian/你的库名/`。
+3. 重新用 Obsidian 打开该 vault（File → Open another vault）。
+4. 之后 BRAT 更新一路畅通，再无写锁。
+
+> 若暂时不便移动 vault，可在更新时**临时关闭 iCloud「桌面与文稿」同步**（系统设置 → Apple ID → iCloud → 关闭「桌面与文稿」），更新完再打开。注意：WorkBuddy / 其它沙箱进程即使在这种状态下也仍可能被 macOS TCC 挡住读 `~/Documents`，因此**插件安装/更新只能由你本机的 Obsidian 完成**，不要指望外部工具替你写进 vault。
+
+**Symptom**: BRAT update fails with "failed to install" even though the GitHub Release and assets are fine.
+**Cause**: when the vault lives under `~/Documents` or `~/Desktop` with iCloud "Desktop & Documents" sync on, iCloud transiently locks the folder during sync, blocking BRAT (the Obsidian process) from writing to `.obsidian/plugins/wechat-content-sync/`. This is a macOS environment limitation, not a plugin bug, and cannot be fixed in plugin code.
+
+**Recommended fix (permanent)**: move the vault out of any iCloud-synced folder (e.g. to `~/Obsidian/your-vault/`) and reopen it in Obsidian.
 
 ## 使用 / Usage
 
