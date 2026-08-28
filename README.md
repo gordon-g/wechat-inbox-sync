@@ -60,6 +60,40 @@ Pairing works via a **pairing code + device token**, no API key needed:
 3. Copy the three files into that folder.
 4. Restart Obsidian and enable "WeChat Content Sync" in Settings → Community plugins.
 
+## 更新 / Update
+
+通过 BRAT 安装的用户，更新只需：
+
+- 命令面板（Cmd/Ctrl+P）→ `BRAT: Check for updates for all beta plugins`；或
+- `BRAT: Update a single beta plugin` → 选 **WeChat Content Sync**。
+
+更新后**重启 Obsidian**（Cmd/Ctrl+R）以加载新版本。
+
+Users installed via BRAT can update with:
+
+- Command palette (Cmd/Ctrl+P) → `BRAT: Check for updates for all beta plugins`; or
+- `BRAT: Update a single beta plugin` → pick **WeChat Content Sync**.
+
+Restart Obsidian (Cmd/Ctrl+R) after updating.
+
+## 从旧版本迁移（插件 id 曾变更）/ Migrate from an old plugin id
+
+早期版本（v1.0.0 的 `wechat-inbox-sync`、v1.0.1 的 `obsidian-wechat-sync`）因 **manifest id 与现版（v1.0.2+ 的 `wechat-content-sync`）不同**，BRAT 无法直接覆盖更新，会报错「无法安装」。请手动迁移一次：
+
+1. 设置 → 第三方插件 → 禁用并**卸载**旧插件（其文件夹名为 `wechat-inbox-sync` 或 `obsidian-wechat-sync`）。
+2. 用 BRAT 重新添加 `gordon-g/wechat-inbox-sync`（见上方安装步骤）。
+3. 启用新插件，重启 Obsidian。
+
+> 约定：自 **v1.0.2 起，插件 id 永久锁定为 `wechat-content-sync`**，后续所有版本均可平滑更新。
+
+Early versions (v1.0.0 `wechat-inbox-sync`, v1.0.1 `obsidian-wechat-sync`) used a **different manifest id** than the current `wechat-content-sync` (v1.0.2+). BRAT cannot overwrite across an id change and will report "failed to install". Migrate manually once:
+
+1. Settings → Community plugins → disable and **uninstall** the old plugin (folder `wechat-inbox-sync` or `obsidian-wechat-sync`).
+2. Re-add via BRAT with `gordon-g/wechat-inbox-sync` (see Installation above).
+3. Enable the new plugin and restart Obsidian.
+
+> Convention: the plugin id is **locked to `wechat-content-sync`** since v1.0.2, so every later version updates smoothly.
+
 ## 使用 / Usage
 
 1. **部署后端 / Deploy the backend**: 克隆并运行 [`sync-backend`](https://github.com/gordon-g/wechat-inbox-sync/tree/main/sync-backend)（Node/Express），默认监听 `http://localhost:8787`。
