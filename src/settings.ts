@@ -71,7 +71,7 @@ export class WechatSyncSettingTab extends PluginSettingTab {
 
     new Setting(containerEl).setName('绑定 Obsidian').setHeading();
     containerEl.createEl('p', {
-      text: '1. 在微信小程序「绑定 Obsidian」页点击「查看绑定码」\n2. 把 6 位绑定码填入下方，点击「立即绑定」\n3. 绑定成功后，插件会自动拉取小程序收集的内容',
+      text: '1. 在微信小程序「绑定 Obsidian」页点击「查看绑定码」\n2. 把 6 位绑定码填入下方，点击「立即绑定」\n3. 手机 / 电脑 / 家人微信可各自生成绑定码，都绑到本 Obsidian，作为独立入口\n4. 绑定成功后，插件会自动拉取小程序收集的内容',
     });
 
     new Setting(containerEl)
@@ -120,6 +120,10 @@ export class WechatSyncSettingTab extends PluginSettingTab {
             this.display();
           })
         );
+
+      // 多入口：列出本 Obsidian 的所有绑定码，可单独移除
+      const entriesEl = containerEl.createEl('div', { cls: 'sync-entries' });
+      this.loadEntries(entriesEl);
     } else {
       bindStatus.createEl('p', { text: '⏳ 未绑定，请输入小程序上的绑定码', cls: 'sync-bind-wait' });
     }
@@ -233,5 +237,29 @@ export class WechatSyncSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         })
       );
+  }
+
+  // 列出本设备的所有绑定入口（绑定码），支持单独移除
+  private async loadEntries(container: HTMLElement): Promise<void> {
+    try {
+      const codes = await this.plugin.getApi().listDeviceCodes();
+      if (!codes.length) return;
+      container.createEl('h4', { text: `已绑定入口（${codes.length}）`, cls: 'sync-entries-title' });
+      for (const c of codes) {
+        const row = container.createEl('div', { cls: 'sync-entry-row' });
+        row.createEl('span', { text: c.code, cls: 'sync-entry-code' });
+        row.createEl('span', {
+          text: c.boundAt ? '已激活' : '未激活',
+          cls: c.boundAt ? 'sync-entry-on' : 'sync-entry-off',
+        });
+        const btn = row.createEl('button', { text: '移除' });
+        btn.addEventListener('click', async () => {
+          await this.plugin.revokeCode(c.code);
+          this.display();
+        });
+      }
+    } catch {
+      // 旧版后端不支持多入口接口时静默跳过，不影响其余设置
+    }
   }
 }

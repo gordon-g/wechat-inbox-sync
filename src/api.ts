@@ -50,4 +50,14 @@ export class SyncApi {
   listNotes(): Promise<PublishedNote[]> {
     return this.req<PublishedNote[]>('GET', '/api/notes');
   }
+
+  // 列出本设备的所有绑定入口（多端共用）
+  listDeviceCodes(): Promise<{ code: string; createdAt: number; boundAt?: number }[]> {
+    return this.req<{ code: string; createdAt: number; boundAt?: number }[]>('GET', '/api/devices/me/codes');
+  }
+
+  // 移除某个绑定入口（撤销该绑定码）
+  revokeDeviceCode(code: string): Promise<{ ok: boolean }> {
+    return this.req<{ ok: boolean }>('POST', '/api/devices/codes/revoke', { code });
+  }
 }

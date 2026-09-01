@@ -128,6 +128,16 @@ export default class WechatSyncPlugin extends Plugin {
     this.updateStatusBar('未绑定');
   }
 
+  // 移除某个绑定入口（撤销某台微信/设备的绑定码）
+  async revokeCode(code: string): Promise<void> {
+    try {
+      await this.getApi().revokeDeviceCode(code);
+      new Notice(`已移除入口 ${code}`);
+    } catch (e) {
+      new Notice('移除失败：' + (e as Error).message);
+    }
+  }
+
   // 拉取同步
   async syncNow(notifyEmpty = true): Promise<number> {
     if (!this.settings.deviceToken) {

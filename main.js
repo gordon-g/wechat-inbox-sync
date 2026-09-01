@@ -67,7 +67,7 @@ var WechatSyncSettingTab = class extends import_obsidian.PluginSettingTab {
     );
     new import_obsidian.Setting(containerEl).setName("\u7ED1\u5B9A Obsidian").setHeading();
     containerEl.createEl("p", {
-      text: "1. \u5728\u5FAE\u4FE1\u5C0F\u7A0B\u5E8F\u300C\u7ED1\u5B9A Obsidian\u300D\u9875\u70B9\u51FB\u300C\u67E5\u770B\u7ED1\u5B9A\u7801\u300D\n2. \u628A 6 \u4F4D\u7ED1\u5B9A\u7801\u586B\u5165\u4E0B\u65B9\uFF0C\u70B9\u51FB\u300C\u7ACB\u5373\u7ED1\u5B9A\u300D\n3. \u7ED1\u5B9A\u6210\u529F\u540E\uFF0C\u63D2\u4EF6\u4F1A\u81EA\u52A8\u62C9\u53D6\u5C0F\u7A0B\u5E8F\u6536\u96C6\u7684\u5185\u5BB9"
+      text: "1. \u5728\u5FAE\u4FE1\u5C0F\u7A0B\u5E8F\u300C\u7ED1\u5B9A Obsidian\u300D\u9875\u70B9\u51FB\u300C\u67E5\u770B\u7ED1\u5B9A\u7801\u300D\n2. \u628A 6 \u4F4D\u7ED1\u5B9A\u7801\u586B\u5165\u4E0B\u65B9\uFF0C\u70B9\u51FB\u300C\u7ACB\u5373\u7ED1\u5B9A\u300D\n3. \u624B\u673A / \u7535\u8111 / \u5BB6\u4EBA\u5FAE\u4FE1\u53EF\u5404\u81EA\u751F\u6210\u7ED1\u5B9A\u7801\uFF0C\u90FD\u7ED1\u5230\u672C Obsidian\uFF0C\u4F5C\u4E3A\u72EC\u7ACB\u5165\u53E3\n4. \u7ED1\u5B9A\u6210\u529F\u540E\uFF0C\u63D2\u4EF6\u4F1A\u81EA\u52A8\u62C9\u53D6\u5C0F\u7A0B\u5E8F\u6536\u96C6\u7684\u5185\u5BB9"
     });
     new import_obsidian.Setting(containerEl).setName("\u7ED1\u5B9A\u7801").setDesc("\u4ECE\u5C0F\u7A0B\u5E8F\u83B7\u53D6\u7684 6 \u4F4D\u5B57\u7B26").addText(
       (t) => t.setPlaceholder("\u4F8B\u5982 A1B2C3").setValue(this.plugin.settings.pairingCodeInput).onChange(async (v) => {
@@ -98,6 +98,8 @@ var WechatSyncSettingTab = class extends import_obsidian.PluginSettingTab {
           this.display();
         })
       );
+      const entriesEl = containerEl.createEl("div", { cls: "sync-entries" });
+      this.loadEntries(entriesEl);
     } else {
       bindStatus.createEl("p", { text: "\u23F3 \u672A\u7ED1\u5B9A\uFF0C\u8BF7\u8F93\u5165\u5C0F\u7A0B\u5E8F\u4E0A\u7684\u7ED1\u5B9A\u7801", cls: "sync-bind-wait" });
     }
@@ -172,6 +174,29 @@ var WechatSyncSettingTab = class extends import_obsidian.PluginSettingTab {
       })
     );
   }
+  // 列出本设备的所有绑定入口（绑定码），支持单独移除
+  async loadEntries(container) {
+    try {
+      const codes = await this.plugin.getApi().listDeviceCodes();
+      if (!codes.length)
+        return;
+      container.createEl("h4", { text: `\u5DF2\u7ED1\u5B9A\u5165\u53E3\uFF08${codes.length}\uFF09`, cls: "sync-entries-title" });
+      for (const c of codes) {
+        const row = container.createEl("div", { cls: "sync-entry-row" });
+        row.createEl("span", { text: c.code, cls: "sync-entry-code" });
+        row.createEl("span", {
+          text: c.boundAt ? "\u5DF2\u6FC0\u6D3B" : "\u672A\u6FC0\u6D3B",
+          cls: c.boundAt ? "sync-entry-on" : "sync-entry-off"
+        });
+        const btn = row.createEl("button", { text: "\u79FB\u9664" });
+        btn.addEventListener("click", async () => {
+          await this.plugin.revokeCode(c.code);
+          this.display();
+        });
+      }
+    } catch (e) {
+    }
+  }
 };
 
 // src/api.ts
@@ -218,6 +243,14 @@ var SyncApi = class {
   }
   listNotes() {
     return this.req("GET", "/api/notes");
+  }
+  // 列出本设备的所有绑定入口（多端共用）
+  listDeviceCodes() {
+    return this.req("GET", "/api/devices/me/codes");
+  }
+  // 移除某个绑定入口（撤销该绑定码）
+  revokeDeviceCode(code) {
+    return this.req("POST", "/api/devices/codes/revoke", { code });
   }
 };
 
@@ -801,6 +834,15 @@ var WechatSyncPlugin = class extends import_obsidian8.Plugin {
     this.saveSettings();
     new import_obsidian8.Notice("\u5DF2\u89E3\u9664\u7ED1\u5B9A");
     this.updateStatusBar("\u672A\u7ED1\u5B9A");
+  }
+  // 移除某个绑定入口（撤销某台微信/设备的绑定码）
+  async revokeCode(code) {
+    try {
+      await this.getApi().revokeDeviceCode(code);
+      new import_obsidian8.Notice(`\u5DF2\u79FB\u9664\u5165\u53E3 ${code}`);
+    } catch (e) {
+      new import_obsidian8.Notice("\u79FB\u9664\u5931\u8D25\uFF1A" + e.message);
+    }
   }
   // 拉取同步
   async syncNow(notifyEmpty = true) {
