@@ -3,3 +3,4 @@ node_modules
 data.json
 .obsidian
 *.log
+.DS_Store
